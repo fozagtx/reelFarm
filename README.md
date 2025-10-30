@@ -1,4 +1,4 @@
-# AI Voice-Over Studio | NodeOps Template
+# ReelFarm | NodeOps Template
 
 A professional node-based workflow tool for generating AI voiceovers from text using ElevenLabs. Built for the NodeOps Cloud Marketplace to help SaaS companies reduce UGC marketing costs by providing an affordable alternative to traditional voice-over services.
 
@@ -61,12 +61,12 @@ A professional node-based workflow tool for generating AI voiceovers from text u
 
 1. **Build the Docker image**
    ```bash
-   docker build -t ai-voiceover-studio .
+   docker build -t reelfarm .
    ```
 
 2. **Run the container**
    ```bash
-   docker run -p 8000:3000 -e ELEVENLABS_API_KEY=your_key_here ai-voiceover-studio
+   docker run -p 8000:3000 -e ELEVENLABS_API_KEY=your_key_here reelfarm
    ```
 
 3. **Access the application**
@@ -125,8 +125,8 @@ This template is ready for deployment on the NodeOps Cloud Marketplace:
 
 1. **Prepare your Docker image**
    ```bash
-   docker build -t your-dockerhub/ai-voiceover-studio .
-   docker push your-dockerhub/ai-voiceover-studio
+   docker build -t your-dockerhub/reelfarm .
+   docker push your-dockerhub/reelfarm
    ```
 
 2. **Update `nodeops_template.yaml`**

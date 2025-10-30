@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AI Voice-Over Studio - A node-based workflow tool for generating professional voiceovers from text using ElevenLabs AI. Built for the NodeOps Cloud Marketplace to help SaaS companies reduce UGC marketing costs by providing an affordable alternative to traditional voice-over services.
+ReelFarm - A node-based workflow tool for generating professional voiceovers from text using ElevenLabs AI. Built for the NodeOps Cloud Marketplace to help SaaS companies reduce UGC marketing costs by providing an affordable alternative to traditional voice-over services.
 
 ## Development Commands
 
@@ -19,8 +19,8 @@ npm run lint         # Run Next.js linter
 
 ### Docker Development
 ```bash
-docker build -t ai-voiceover-studio .    # Build Docker image
-docker run -p 8000:3000 ai-voiceover-studio  # Run container (accessible at http://localhost:8000)
+docker build -t reelfarm .    # Build Docker image
+docker run -p 8000:3000 reelfarm  # Run container (accessible at http://localhost:8000)
 ```
 
 ### Environment Setup

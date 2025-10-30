@@ -42,7 +42,7 @@ export default function Page() {
               <div className="text-center mb-4">
                 <h1 className="text-2xl font-bold text-purple-800 mb-2 flex items-center justify-center gap-2">
                   <Mic className="w-6 h-6" />
-                  AI Voice-Over Studio
+                  ReelFarm
                 </h1>
                 <p className="text-purple-700 text-sm">
                   Transform text into professional voiceovers using AI-powered speech synthesis
