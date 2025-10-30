@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, Twitter, Github, Mic } from "lucide-react";
+import ChatbotSidebar from "@/components/workflow/ChatbotSidebar";
 
 // Dynamically import WorkflowCanvas to avoid SSR issues with React Flow
 const WorkflowCanvas = dynamic(
@@ -13,7 +14,8 @@ const WorkflowCanvas = dynamic(
 
 export default function Page() {
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <ChatbotSidebar>
+      <div className="min-h-screen bg-black flex flex-col">
       {/* Logo */}
       <div className="fixed top-5 left-5 z-10">
         <a
@@ -135,10 +137,11 @@ export default function Page() {
         </div>
       </div>
 
-      {/* Workflow Canvas */}
-      <div className="flex-1">
-        <WorkflowCanvas />
+        {/* Workflow Canvas */}
+        <div className="flex-1">
+          <WorkflowCanvas />
+        </div>
       </div>
-    </div>
+    </ChatbotSidebar>
   );
 }

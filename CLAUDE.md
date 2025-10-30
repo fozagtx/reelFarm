@@ -27,8 +27,10 @@ docker run -p 8000:3000 ai-voiceover-studio  # Run container (accessible at http
 Create a `.env.local` file with:
 ```
 ELEVENLABS_API_KEY=your_api_key_here
+MISTRAL_API_KEY=your_mistral_api_key_here
 ```
-Get your API key from https://elevenlabs.io/app/settings/api-keys
+- Get ElevenLabs API key from https://elevenlabs.io/app/settings/api-keys
+- Get Mistral API key from https://console.mistral.ai/
 
 ## Architecture
 
@@ -36,10 +38,15 @@ Get your API key from https://elevenlabs.io/app/settings/api-keys
 - **Framework**: Next.js 15 with App Router
 - **Language**: TypeScript with strict mode enabled
 - **UI Library**: React Flow for node-based workflow canvas
-- **Styling**: Tailwind CSS with Radix UI primitives
+- **UI Components**: shadcn/ui with Radix UI primitives
+- **Styling**: Tailwind CSS
 - **State Management**: TanStack Query (React Query) for server state
-- **AI Service**: ElevenLabs API for text-to-speech conversion
+- **AI Services**:
+  - ElevenLabs API for text-to-speech conversion
+  - Mistral AI for ICP generation and offer crafting
+- **AI SDK**: Vercel AI SDK for streaming chat responses
 - **Storage**: Client-side localStorage for workflow persistence
+- **Layout**: react-resizable-panels for resizable sidebar
 - **Deployment**: Docker containerized with multi-stage builds
 
 ### Key Architecture Decisions
@@ -70,16 +77,40 @@ Get your API key from https://elevenlabs.io/app/settings/api-keys
 - Queries for fetching available voices (GET /api/generate-voice)
 - Automatic caching and refetch logic
 
+**5. AI Chatbot Sidebar**
+- Resizable sidebar powered by react-resizable-panels
+- Mistral AI chatbot for ICP (Ideal Customer Profile) generation
+- Specialized tools for generating personas and crafting unique offers
+- Floating button to open/close sidebar
+- Can be collapsed or fully closed
+- Integrates with main workflow without disrupting canvas interaction
+
 ### Application Structure
 
-**Backend API** (app/api/generate-voice/route.ts)
+**Backend APIs**
+
+*Voice Generation API* (app/api/generate-voice/route.ts)
 - POST endpoint: Accepts text + voiceId, returns base64 audio
 - GET endpoint: Returns available ElevenLabs voices
 - Uses official @elevenlabs/elevenlabs-js SDK
 - Streams audio and converts to base64 for client delivery
 
+*Chatbot API* (app/api/primitives/chatbot/route.ts)
+- POST endpoint: Handles AI chat conversations with streaming responses
+- Uses Mistral AI via @ai-sdk/mistral provider
+- Implements two specialized tools:
+  - `generateICP`: Creates detailed Ideal Customer Profiles based on product info
+  - `generateOffer`: Crafts compelling value propositions and offers
+- Streams responses using Vercel AI SDK's streamText functionality
+- Custom system prompt optimized for marketing strategy and customer research
+
 **Frontend Components**
-- **app/page.tsx**: Main page with header and workflow canvas
+- **app/page.tsx**: Main page wrapped with ChatbotSidebar
+- **components/workflow/ChatbotSidebar.tsx**: Resizable sidebar container
+  - Manages sidebar open/close state
+  - Integrates react-resizable-panels for resize functionality
+  - Floating button with gradient styling
+  - Info banner with usage tips
 - **components/workflow/WorkflowCanvas.tsx**: React Flow canvas orchestrator
   - Manages node/edge state
   - Handles voice generation workflow
@@ -90,6 +121,13 @@ Get your API key from https://elevenlabs.io/app/settings/api-keys
   - Each node is a memoized component with Handle connectors
   - Data flows through node.data props
   - Callbacks injected for interactivity
+- **components/primitives/chatbot.tsx**: AI chatbot UI component
+  - Uses Vercel AI SDK's useChat hook
+  - Markdown rendering for formatted responses
+  - Message actions (copy, upvote, downvote)
+  - Streaming response support
+- **components/prompt-kit/**: Reusable chat UI primitives from prompt-kit
+  - Chat container, messages, input, loader, markdown, code blocks
 
 **State Management** (lib/hooks/useVoiceGeneration.ts)
 - `useVoiceGeneration()`: Mutation hook for generating voices
@@ -98,6 +136,7 @@ Get your API key from https://elevenlabs.io/app/settings/api-keys
 
 ### Data Flow
 
+**Voice Generation Workflow:**
 1. User enters text in TextInputNode
 2. Text stored in node.data via handleTextChange callback
 3. User clicks "Generate Voice" in VoiceGeneratorNode
@@ -107,6 +146,16 @@ Get your API key from https://elevenlabs.io/app/settings/api-keys
 7. VoiceGeneratorNode updates to "success" status
 8. AudioOutputNode receives audio data via connected edge
 9. User can play/pause or download MP3
+
+**Chatbot ICP/Offer Generation Workflow:**
+1. User clicks floating Sparkles button to open sidebar
+2. Sidebar slides in from right with resizable panel
+3. User describes their product/service in chat
+4. Mistral AI analyzes input and asks clarifying questions
+5. AI uses `generateICP` tool to create detailed persona
+6. AI uses `generateOffer` tool to craft value propositions
+7. Responses stream in real-time with markdown formatting
+8. User can copy insights, resize sidebar, or close when done
 
 ### React Flow Integration
 
@@ -145,12 +194,14 @@ Multi-stage build (same as before):
 
 ## Important Notes
 
-- **API Key Security**: Never commit `.env.local` file. Always use environment variables.
+- **API Key Security**: Never commit `.env.local` file. Always use environment variables for both ElevenLabs and Mistral API keys.
 - **Audio Storage**: Audio is stored as base64 in localStorage - not ideal for large volumes. Consider indexedDB for production.
-- **Rate Limiting**: ElevenLabs has rate limits. Implement backend rate limiting before production deployment.
-- **Error Handling**: All API errors are caught and displayed in VoiceGeneratorNode status.
-- **Browser Compatibility**: React Flow requires modern browsers with ES6 support.
-- **Mobile Support**: Current UI is desktop-optimized. Mobile gestures may need adjustment.
+- **Rate Limiting**: Both ElevenLabs and Mistral have rate limits. Implement backend rate limiting before production deployment.
+- **Error Handling**: All API errors are caught and displayed appropriately (VoiceGeneratorNode status, chatbot error messages).
+- **Browser Compatibility**: React Flow and resizable panels require modern browsers with ES6 support.
+- **Mobile Support**: Current UI is desktop-optimized. Mobile gestures and sidebar may need adjustment for mobile devices.
+- **Chatbot Context**: Chatbot conversations are not persisted. Refresh clears chat history.
+- **AI Model**: Using Mistral Large for high-quality marketing insights. Can be changed to mistral-small for cost savings.
 
 ## Common Development Tasks
 
@@ -174,10 +225,44 @@ voice_settings: {
 ### Adding Voice Selection UI
 Use the `useAvailableVoices()` hook to fetch voices and create a dropdown in VoiceGeneratorNode.
 
+### Customizing Chatbot System Prompt
+Edit the `ICP_SYSTEM_PROMPT` constant in `app/api/primitives/chatbot/route.ts` to modify the AI's behavior, expertise, and tone.
+
+### Adding New Chatbot Tools
+Add new tools to the `tools` object in the chatbot route:
+```typescript
+tools: {
+  generateICP: tool({ ... }),
+  generateOffer: tool({ ... }),
+  yourNewTool: tool({
+    description: "What this tool does",
+    inputSchema: z.object({ ... }),
+    execute: async (params) => { ... }
+  })
+}
+```
+
+### Modifying Sidebar Behavior
+Edit `components/workflow/ChatbotSidebar.tsx` to change:
+- Default panel sizes (defaultSize, minSize, maxSize)
+- Sidebar positioning (change Panel order for left sidebar)
+- Styling and colors (gradient classes)
+- Floating button position
+
 ## Testing Locally
+
+**Voice Generation:**
 1. Get ElevenLabs API key from https://elevenlabs.io
-2. Create `.env.local` with your key
+2. Add to `.env.local`
 3. Run `npm run dev`
 4. Enter text in blue node
 5. Click "Generate Voice" in purple node
 6. Play audio in green node
+
+**ICP/Offer Generation:**
+1. Get Mistral API key from https://console.mistral.ai/
+2. Add to `.env.local`
+3. Click sparkles button (bottom right)
+4. Describe your product to the AI
+5. Ask it to generate ICPs or offers
+6. Copy insights or resize sidebar as needed
